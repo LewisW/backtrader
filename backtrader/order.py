@@ -581,6 +581,23 @@ class Order(OrderBase):
 
         # self.comminfo = None
 
+    def update_price(self):
+        self.created.size = self.size
+        self.created.price = self.price
+        self.created.pricelimit = self.pricelimit
+        self.created.trailamount = self.trailamount
+        self.created.trailpercent = self.trailpercent
+
+        if not self.pricelimit:
+            # if no pricelimit is given, use the given price
+            self.created.pricelimit = self.created.price
+
+        if self.pricelimit and not self.price:
+            # price must always be set if pricelimit is set ...
+            self.created.price = self.pricelimit
+
+        self.created.plimit = self.pricelimit
+
     def expire(self):
         if self.exectype == Order.Market:
             return False  # will be executed yes or yes

@@ -137,36 +137,7 @@ class IBOrder(OrderBase, ib.ext.Order.Order):
         # 'B' or 'S' should be enough
         self.m_action = bytes(action)
 
-        # Set the prices
-        self.m_lmtPrice = 0.0
-        self.m_auxPrice = 0.0
-
-        if self.exectype == self.Market:  # is it really needed for Market?
-            pass
-        elif self.exectype == self.Close:  # is it ireally needed for Close?
-            pass
-        elif self.exectype == self.Limit:
-            self.m_lmtPrice = self.price
-        elif self.exectype == self.Stop:
-            self.m_auxPrice = self.price  # stop price / exec is market
-        elif self.exectype == self.StopLimit:
-            self.m_lmtPrice = self.pricelimit  # req limit execution
-            self.m_auxPrice = self.price  # trigger price
-        elif self.exectype == self.StopTrail:
-            if self.trailamount is not None:
-                self.m_auxPrice = self.trailamount
-            elif self.trailpercent is not None:
-                # value expected in % format ... multiply 100.0
-                self.m_trailingPercent = self.trailpercent * 100.0
-        elif self.exectype == self.StopTrailLimit:
-            self.m_trailStopPrice = self.m_lmtPrice = self.price
-            # The limit offset is set relative to the price difference in TWS
-            self.m_lmtPrice = self.pricelimit
-            if self.trailamount is not None:
-                self.m_auxPrice = self.trailamount
-            elif self.trailpercent is not None:
-                # value expected in % format ... multiply 100.0
-                self.m_trailingPercent = self.trailpercent * 100.0
+        self.update_price()
 
         self.m_totalQuantity = abs(self.size)  # ib takes only positives
 
@@ -203,6 +174,40 @@ class IBOrder(OrderBase, ib.ext.Order.Order):
         # pass any custom arguments to the order
         for k in kwargs:
             setattr(self, (not hasattr(self, k)) * 'm_' + k, kwargs[k])
+
+    def update_price(self):
+        super(IBOrder, self).update_price()
+
+        # Set the prices
+        self.m_lmtPrice = 0.0
+        self.m_auxPrice = 0.0
+
+        if self.exectype == self.Market:  # is it really needed for Market?
+            pass
+        elif self.exectype == self.Close:  # is it ireally needed for Close?
+            pass
+        elif self.exectype == self.Limit:
+            self.m_lmtPrice = self.price
+        elif self.exectype == self.Stop:
+            self.m_auxPrice = self.price  # stop price / exec is market
+        elif self.exectype == self.StopLimit:
+            self.m_lmtPrice = self.pricelimit  # req limit execution
+            self.m_auxPrice = self.price  # trigger price
+        elif self.exectype == self.StopTrail:
+            if self.trailamount is not None:
+                self.m_auxPrice = self.trailamount
+            elif self.trailpercent is not None:
+                # value expected in % format ... multiply 100.0
+                self.m_trailingPercent = self.trailpercent * 100.0
+        elif self.exectype == self.StopTrailLimit:
+            self.m_trailStopPrice = self.m_lmtPrice = self.price
+            # The limit offset is set relative to the price difference in TWS
+            self.m_lmtPrice = self.pricelimit
+            if self.trailamount is not None:
+                self.m_auxPrice = self.trailamount
+            elif self.trailpercent is not None:
+                # value expected in % format ... multiply 100.0
+                self.m_trailingPercent = self.trailpercent * 100.0
 
 
 class IBCommInfo(CommInfoBase):
