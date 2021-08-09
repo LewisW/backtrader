@@ -176,7 +176,7 @@ class IBOrder(OrderBase, ib.ext.Order.Order):
             setattr(self, (not hasattr(self, k)) * 'm_' + k, kwargs[k])
 
     def update_price(self):
-        super(IBOrder, self).update_price()
+        self.m_transmit = self.transmit
 
         # Set the prices
         self.m_lmtPrice = 0.0
@@ -339,6 +339,12 @@ class IBBroker(with_metaclass(MetaIBBroker, BrokerBase)):
             order.m_ocaGroup = self.orderbyid[order.oco.m_orderId].m_ocaGroup
 
         self.orderbyid[order.m_orderId] = order
+        self.ib.placeOrder(order.m_orderId, order.data.tradecontract, order)
+        self.notify(order)
+
+    def resubmit(self, order):
+        order.submit(self)
+
         self.ib.placeOrder(order.m_orderId, order.data.tradecontract, order)
         self.notify(order)
 

@@ -398,6 +398,7 @@ class BackBroker(bt.BrokerBase):
         order.cancel()
         self.notify(order)
         self._ococheck(order)
+
         if not bracket:
             self._bracketize(order, cancel=True)
         return True
@@ -542,6 +543,9 @@ class BackBroker(bt.BrokerBase):
             rets = [self.transmit(x, check=check) for x in pc]
             return rets[-1]  # last one is the one triggering transmission
 
+        return order
+
+    def resubmit(self, order, check=True):
         return order
 
     def transmit(self, order, check=True):
