@@ -141,7 +141,6 @@ class IBOrder(OrderBase, ib.ext.Order.Order):
 
         self.m_totalQuantity = abs(self.size)  # ib takes only positives
 
-        self.m_transmit = self.transmit
         if self.parent is not None:
             self.m_parentId = self.parent.m_orderId
 
@@ -341,6 +340,8 @@ class IBBroker(with_metaclass(MetaIBBroker, BrokerBase)):
         self.orderbyid[order.m_orderId] = order
         self.ib.placeOrder(order.m_orderId, order.data.tradecontract, order)
         self.notify(order)
+
+        return order
 
     def resubmit(self, order):
         order.submit(self)
