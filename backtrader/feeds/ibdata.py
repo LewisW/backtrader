@@ -376,7 +376,7 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
         cds = self.ib.getContractDetails(self.precontract, maxcount=1)
         if cds is not None:
             cdetails = cds[0]
-            self.contract = cdetails.contractDetails.summary
+            self.contract = cdetails.contractDetails.contract
             self.contractdetails = cdetails.contractDetails
         else:
             # no contract can be found (or many)
@@ -393,7 +393,7 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
             cds = self.ib.getContractDetails(self.pretradecontract, maxcount=1)
             if cds is not None:
                 cdetails = cds[0]
-                self.tradecontract = cdetails.contractDetails.summary
+                self.tradecontract = cdetails.contractDetails.contract
                 self.tradecontractdetails = cdetails.contractDetails
             else:
                 # no contract can be found (or many)
