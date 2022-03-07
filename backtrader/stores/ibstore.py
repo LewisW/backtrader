@@ -864,7 +864,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
 
         # q.put(None)  # to kickstart backfilling
         # Can request 233 also for cash ... nothing will arrive
-        self.conn.reqMktData(tickerId, contract, bytes(ticks), False)
+        self.conn.reqMktData(tickerId, contract, bytes(ticks), False, False, None)
         return q
 
     def cancelMktData(self, q):
