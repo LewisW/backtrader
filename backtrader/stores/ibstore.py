@@ -882,6 +882,8 @@ class IBStore(with_metaclass(MetaSingleton, object)):
 
     @ibregister
     def tickString(self, msg):
+        print('tickType:')
+        print(msg)
         # Receive and process a tickString message
         if msg.tickType == 48:  # RTVolume
             try:
@@ -891,10 +893,12 @@ class IBStore(with_metaclass(MetaSingleton, object)):
             else:
                 # Don't need to adjust the time, because it is in "timestamp"
                 # form in the message
-                self.qs[msg.tickerId].put(rtvol)
+                self.qs[msg.reqId].put(rtvol)
 
     @ibregister
     def tickPrice(self, msg):
+        print('tickPrice:')
+        print(msg)
         '''Cash Markets have no notion of "last_price"/"last_size" and the
         tracking of the price is done (industry de-facto standard at least with
         the IB API) following the BID price
@@ -905,7 +909,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         # Used for "CASH" markets
         # The price field has been seen to be missing in some instances even if
         # "field" is 1
-        tickerId = msg.tickerId
+        tickerId = msg.reqId
         fieldcode = self.iscash[tickerId]
         if fieldcode:
             if msg.field == fieldcode:  # Expected cash field code
