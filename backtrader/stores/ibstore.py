@@ -30,8 +30,8 @@ import random
 import threading
 import time
 
-from ibapi.Contract import Contract
-import ibpythonic as ibopt
+from ib.ext.Contract import Contract
+import ib.opt as ibopt
 
 from backtrader import TimeFrame, Position
 from backtrader.metabase import MetaParams
@@ -96,7 +96,7 @@ class MetaSingleton(MetaParams):
         return cls._singleton
 
 
-# Decorator to mark methods to register with ibpythonic
+# Decorator to mark methods to register with ib.opt
 def ibregister(f):
     f._ibregister = True
     return f
@@ -736,12 +736,12 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         self.histsend[tickerId] = sessionend
         self.histtz[tickerId] = tz
 
-        if contract.secType in ['CASH', 'CFD']:
+        if contract.m_secType in ['CASH', 'CFD']:
             self.iscash[tickerId] = 1  # msg.field code
             if not what:
                 what = 'BID'  # default for cash unless otherwise specified
 
-        elif contract.secType in ['IND'] and self.p.indcash:
+        elif contract.m_secType in ['IND'] and self.p.indcash:
             self.iscash[tickerId] = 4  # msg.field code
 
         what = what or 'TRADES'
@@ -765,7 +765,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         # get a ticker/queue for identification/data delivery
         tickerId, q = self.getTickerQueue()
 
-        if contract.secType in ['CASH', 'CFD']:
+        if contract.m_secType in ['CASH', 'CFD']:
             self.iscash[tickerId] = True
             if not what:
                 what = 'BID'  # TRADES doesn't work
@@ -806,7 +806,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         '''Creates a request for (5 seconds) Real Time Bars
 
         Params:
-          - contract: a ibapi.Contract.Contract intance
+          - contract: a ib.ext.Contract.Contract intance
           - useRTH: (default: False) passed to TWS
           - duration: (default: 5) passed to TWS, no other value works in 2016)
 
@@ -843,7 +843,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         '''Creates a MarketData subscription
 
         Params:
-          - contract: a ibapi.Contract.Contract intance
+          - contract: a ib.ext.Contract.Contract intance
 
         Returns:
           - a Queue the client can wait on to receive a RTVolume instance
@@ -852,7 +852,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         tickerId, q = self.getTickerQueue()
         ticks = '233'  # request RTVOLUME tick delivered over tickString
 
-        if contract.secType in ['CASH', 'CFD']:
+        if contract.m_secType in ['CASH', 'CFD']:
             self.iscash[tickerId] = True
             ticks = ''  # cash markets do not get RTVOLUME
             if what == 'ASK':
@@ -1277,18 +1277,18 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         '''returns a contract from the parameters without check'''
 
         contract = Contract()
-        contract.symbol = bytes(symbol)
-        contract.secType = bytes(sectype)
-        contract.exchange = bytes(exch)
+        contract.m_symbol = bytes(symbol)
+        contract.m_secType = bytes(sectype)
+        contract.m_exchange = bytes(exch)
         if curr:
-            contract.currency = bytes(curr)
+            contract.m_currency = bytes(curr)
         if sectype in ['FUT', 'OPT', 'FOP']:
-            contract.expiry = bytes(expiry)
+            contract.m_expiry = bytes(expiry)
         if sectype in ['OPT', 'FOP']:
-            contract.strike = strike
-            contract.right = bytes(right)
+            contract.m_strike = strike
+            contract.m_right = bytes(right)
         if mult:
-            contract.multiplier = bytes(mult)
+            contract.m_multiplier = bytes(mult)
         return contract
 
     def cancelOrder(self, orderid):
@@ -1359,9 +1359,9 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         with self._lock_pos:
             if not self._event_accdownload.is_set():  # 1st event seen
                 position = Position(msg.position, msg.averageCost)
-                self.positions[msg.contract.conId] = position
+                self.positions[msg.contract.m_conId] = position
             else:
-                position = self.positions[msg.contract.conId]
+                position = self.positions[msg.contract.m_conId]
                 if not position.fix(msg.position, msg.averageCost):
                     err = ('The current calculated position and '
                            'the position reported by the broker do not match. '
@@ -1378,7 +1378,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         # Lock access to the position dicts. This is called from main thread
         # and updates could be happening in the background
         with self._lock_pos:
-            position = self.positions[contract.conId]
+            position = self.positions[contract.m_conId]
             if clone:
                 return copy(position)
 
