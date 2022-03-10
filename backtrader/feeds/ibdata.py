@@ -549,7 +549,7 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
                 dtend = None
                 if len(self) > 1:
                     # len == 1 ... forwarded for the 1st time
-                    # get begin date in utc-like format like msg.Datetime
+                    # get begin date in utc-like format like msg.datetime
                     dtbegin = num2date(self.datetime[-1])
                 elif self.fromdate > float('-inf'):
                     dtbegin = num2date(self.fromdate)
@@ -557,7 +557,7 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
                     # passing None to fetch max possible in 1 request
                     dtbegin = None
 
-                dtend = msg.Datetime if self._usertvol else msg.Time
+                dtend = msg.datetime if self._usertvol else msg.time
 
                 self.qhist = self.ib.reqHistoricalDataEx(
                     contract=self.contract, enddate=dtend, begindate=dtbegin,
@@ -593,7 +593,7 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
                     self.put_notification(self.UNKNOWN, msg)
                     continue
 
-                if msg.Date is not None:
+                if msg.date is not None:
                     if self._load_rtbar(msg, hist=True):
                         return True  # loading worked
 
@@ -666,17 +666,17 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
         # contains open/high/low/close/volume prices
         # The historical data has the same data but with 'date' instead of
         # 'time' for datetime
-        dt = date2num(rtbar.Time if not hist else rtbar.Date)
+        dt = date2num(rtbar.time if not hist else rtbar.date)
         if dt < self.lines.datetime[-1] and not self.p.latethrough:
             return False  # cannot deliver earlier than already delivered
 
         self.lines.datetime[0] = dt
         # Put the tick into the bar
-        self.lines.open[0] = rtbar.Open
-        self.lines.high[0] = rtbar.High
-        self.lines.low[0] = rtbar.Low
-        self.lines.close[0] = rtbar.Close
-        self.lines.volume[0] = rtbar.Volume
+        self.lines.open[0] = rtbar.open
+        self.lines.high[0] = rtbar.high
+        self.lines.low[0] = rtbar.low
+        self.lines.close[0] = rtbar.close
+        self.lines.volume[0] = rtbar.volume
         self.lines.openinterest[0] = 0
 
         return True
@@ -686,19 +686,19 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
         # of prices. Ideally the
         # contains open/high/low/close/volume prices
         # Datetime transformation
-        dt = date2num(rtvol.Datetime)
+        dt = date2num(rtvol.datetime)
         if dt < self.lines.datetime[-1] and not self.p.latethrough:
             return False  # cannot deliver earlier than already delivered
 
         self.lines.datetime[0] = dt
 
         # Put the tick into the bar
-        tick = rtvol.Price
+        tick = rtvol.price
         self.lines.open[0] = tick
         self.lines.high[0] = tick
         self.lines.low[0] = tick
         self.lines.close[0] = tick
-        self.lines.volume[0] = rtvol.Size
+        self.lines.volume[0] = rtvol.size
         self.lines.openinterest[0] = 0
 
         return True

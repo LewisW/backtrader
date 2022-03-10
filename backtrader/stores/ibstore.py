@@ -979,7 +979,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
             else:
                 msg.bar.Date = datetime.utcfromtimestamp(long(dtstr))
 
-        q.put(msg.bar)
+        q.put(msg)
 
     # The _durations are meant to calculate the needed historical data to
     # perform backfilling at the start of a connetion or a connection is lost.
