@@ -573,8 +573,6 @@ class IBBroker(with_metaclass(MetaIBBroker, BrokerBase)):
             self.notify(order)
 
     def push_orderstate(self, msg):
-        print('Push order state:')
-        print(msg)
         with self._lock_orders:
             try:
                 order = self.orderbyid[msg.orderId]
