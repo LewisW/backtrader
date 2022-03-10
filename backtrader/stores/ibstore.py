@@ -1394,9 +1394,9 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         # sub-thread and could kick it at anytime
         with self._lock_accupd:
             try:
-                value = float(msg.val)
+                value = float(msg.value)
             except ValueError:
-                value = msg.val
+                value = msg.value
 
             self.acc_upds[msg.accountName][msg.key][msg.currency] = value
 
