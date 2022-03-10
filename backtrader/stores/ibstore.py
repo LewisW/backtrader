@@ -754,9 +754,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
             bytes(barsize),
             bytes(what),
             int(useRTH),
-            2,
-            False,
-            None)  # dateformat 1 for string, 2 for unix time in seconds
+            2)  # dateformat 1 for string, 2 for unix time in seconds
 
         return q
 
@@ -790,9 +788,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
             bytes(barsize),
             bytes(what),
             int(useRTH),
-            2,
-            False,
-            None)
+            2)
 
         return q
 
