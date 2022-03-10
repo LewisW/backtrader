@@ -30,7 +30,7 @@ import random
 import threading
 import time
 
-from ibapi.contract import Contract
+from ibapi.Contract import Contract
 import ibpythonic as ibopt
 
 from backtrader import TimeFrame, Position
@@ -806,7 +806,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         '''Creates a request for (5 seconds) Real Time Bars
 
         Params:
-          - contract: a ibapi.contract.Contract intance
+          - contract: a ibapi.Contract.Contract intance
           - useRTH: (default: False) passed to TWS
           - duration: (default: 5) passed to TWS, no other value works in 2016)
 
@@ -843,7 +843,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         '''Creates a MarketData subscription
 
         Params:
-          - contract: a ibapi.contract.Contract intance
+          - contract: a ibapi.Contract.Contract intance
 
         Returns:
           - a Queue the client can wait on to receive a RTVolume instance

@@ -27,7 +27,7 @@ from datetime import date, datetime, timedelta
 import threading
 import uuid
 
-import ibapi.order
+import ibapi.Order
 import ibpythonic as ibopt
 
 from backtrader.feed import DataBase
@@ -63,16 +63,16 @@ class IBOrderState(object):
         return '\n'.join(txt)
 
 
-class IBOrder(OrderBase, ibapi.order.Order):
+class IBOrder(OrderBase, ibapi.Order.Order):
     '''Subclasses the IBPy order to provide the minimum extra functionality
     needed to be compatible with the internally defined orders
 
     Once ``OrderBase`` has processed the parameters, the __init__ method takes
     over to use the parameter values and set the appropriate values in the
-    ibapi.order.Order object
+    ibapi.Order.Order object
 
     Any extra parameters supplied with kwargs are applied directly to the
-    ibapi.order.Order object, which could be used as follows::
+    ibapi.Order.Order object, which could be used as follows::
 
       Example: if the 4 order execution types directly supported by
       ``backtrader`` are not enough, in the case of for example
@@ -126,7 +126,7 @@ class IBOrder(OrderBase, ibapi.order.Order):
         self.ordtype = self.Buy if action == 'BUY' else self.Sell
 
         super(IBOrder, self).__init__()
-        ibapi.order.Order.__init__(self)  # Invoke 2nd base class
+        ibapi.Order.Order.__init__(self)  # Invoke 2nd base class
 
         # Now fill in the specific IB parameters
         self.orderType = self._IBOrdTypes[self.exectype]
