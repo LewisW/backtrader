@@ -882,6 +882,8 @@ class IBStore(with_metaclass(MetaSingleton, object)):
 
     @ibregister
     def tickString(self, msg):
+        print('tickType:')
+        print(msg)
         # Receive and process a tickString message
         if msg.tickType == 48:  # RTVolume
             try:
@@ -895,6 +897,8 @@ class IBStore(with_metaclass(MetaSingleton, object)):
 
     @ibregister
     def tickPrice(self, msg):
+        print('tickPrice:')
+        print(msg)
         '''Cash Markets have no notion of "last_price"/"last_size" and the
         tracking of the price is done (industry de-facto standard at least with
         the IB API) following the BID price
