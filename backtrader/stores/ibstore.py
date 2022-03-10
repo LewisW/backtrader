@@ -944,7 +944,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         # None, issue a new reqHistData with the new data and move formward
         tickerId = msg.reqId
         q = self.qs[tickerId]
-        if msg.bar.Date.startswith('finished-'):
+        if msg.date.startswith('finished-'):
             self.histfmt.pop(tickerId, None)
             self.histsend.pop(tickerId, None)
             self.histtz.pop(tickerId, None)
@@ -953,10 +953,10 @@ class IBStore(with_metaclass(MetaSingleton, object)):
                 self.reqHistoricalDataEx(tickerId=tickerId, **kargs)
                 return
 
-            msg.bar.Date = None
+            msg.date = None
             self.cancelQueue(q)
         else:
-            dtstr = msg.bar.Date  # Format when string req: YYYYMMDD[  HH:MM:SS]
+            dtstr = msg.date  # Format when string req: YYYYMMDD[  HH:MM:SS]
             if self.histfmt[tickerId]:
                 sessionend = self.histsend[tickerId]
                 dt = datetime.strptime(dtstr, '%Y%m%d')
@@ -975,9 +975,9 @@ class IBStore(with_metaclass(MetaSingleton, object)):
                 if dteosutc <= datetime.utcnow():
                     dt = dteosutc
 
-                msg.bar.Date = dt
+                msg.date = dt
             else:
-                msg.bar.Date = datetime.utcfromtimestamp(long(dtstr))
+                msg.date = datetime.utcfromtimestamp(long(dtstr))
 
         q.put(msg)
 
