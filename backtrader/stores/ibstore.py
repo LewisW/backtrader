@@ -21,6 +21,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import bisect
 import collections
 from copy import copy
 from datetime import date, datetime, timedelta
@@ -944,42 +945,47 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         # None, issue a new reqHistData with the new data and move formward
         tickerId = msg.reqId
         q = self.qs[tickerId]
-        if msg.bar.Date.startswith('finished-'):
-            self.histfmt.pop(tickerId, None)
-            self.histsend.pop(tickerId, None)
-            self.histtz.pop(tickerId, None)
-            kargs = self.histexreq.pop(tickerId, None)
-            if kargs is not None:
-                self.reqHistoricalDataEx(tickerId=tickerId, **kargs)
-                return
-
-            msg.bar.Date = None
-            self.cancelQueue(q)
-        else:
-            dtstr = msg.bar.Date  # Format when string req: YYYYMMDD[  HH:MM:SS]
-            if self.histfmt[tickerId]:
-                sessionend = self.histsend[tickerId]
-                dt = datetime.strptime(dtstr, '%Y%m%d')
-                dteos = datetime.combine(dt, sessionend)
-                tz = self.histtz[tickerId]
-                if tz:
-                    dteostz = tz.localize(dteos)
-                    dteosutc = dteostz.astimezone(UTC).replace(tzinfo=None)
-                    # When requesting for example daily bars, the current day
-                    # will be returned with the already happened data. If the
-                    # session end were added, the new ticks wouldn't make it
-                    # through, because they happen before the end of time
-                else:
-                    dteosutc = dteos
-
-                if dteosutc <= datetime.utcnow():
-                    dt = dteosutc
-
-                msg.bar.Date = dt
+        dtstr = msg.bar.date  # Format when string req: YYYYMMDD[  HH:MM:SS]
+        if self.histfmt[tickerId]:
+            sessionend = self.histsend[tickerId]
+            dt = datetime.strptime(dtstr, '%Y%m%d')
+            dteos = datetime.combine(dt, sessionend)
+            tz = self.histtz[tickerId]
+            if tz:
+                dteostz = tz.localize(dteos)
+                dteosutc = dteostz.astimezone(UTC).replace(tzinfo=None)
+                # When requesting for example daily bars, the current day
+                # will be returned with the already happened data. If the
+                # session end were added, the new ticks wouldn't make it
+                # through, because they happen before the end of time
             else:
-                msg.bar.Date = datetime.utcfromtimestamp(long(dtstr))
+                dteosutc = dteos
+
+            if dteosutc <= datetime.utcnow():
+                dt = dteosutc
+
+            msg.bar.date = dt
+        else:
+            msg.bar.date = datetime.utcfromtimestamp(long(dtstr))
 
         q.put(msg.bar)
+
+    @ibregister
+    def historicalDataEnd(self, msg):
+        tickerId = msg.reqId
+        q = self.qs[tickerId]
+
+        self.histfmt.pop(tickerId, None)
+        self.histsend.pop(tickerId, None)
+        self.histtz.pop(tickerId, None)
+        kargs = self.histexreq.pop(tickerId, None)
+        if kargs is not None:
+            self.reqHistoricalDataEx(tickerId=tickerId, **kargs)
+            return
+
+        self.cancelQueue(q)
+
+        q.put(msg)
 
     # The _durations are meant to calculate the needed historical data to
     # perform backfilling at the start of a connetion or a connection is lost.
@@ -1212,7 +1218,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         else:
             checkdur = duration
 
-        sizes = self._durations[checkduration]
+        sizes = self._durations[checkdur]
         return duration, sizes
 
     def calcduration(self, dtbegin, dtend):
