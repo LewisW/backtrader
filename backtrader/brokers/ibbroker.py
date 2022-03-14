@@ -22,6 +22,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import collections
+import logging
 from copy import copy
 from datetime import date, datetime, timedelta
 import threading
@@ -310,7 +311,8 @@ class IBBroker(with_metaclass(MetaIBBroker, BrokerBase)):
     def cancel(self, order):
         try:
             o = self.orderbyid[order.orderId]
-        except (ValueError, KeyError):
+        except (ValueError, KeyError) as e:
+            logging.warning(e, exc_info=True)
             return  # not found ... not cancellable
 
         if order.status == Order.Cancelled:  # already cancelled
@@ -353,7 +355,8 @@ class IBBroker(with_metaclass(MetaIBBroker, BrokerBase)):
         contract = data.tradecontract
         try:
             mult = float(contract.multiplier)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as e:
+            logging.warning(e, exc_info=True)
             mult = 1.0
 
         stocklike = contract.secType not in ('FUT', 'OPT', 'FOP',)
@@ -424,7 +427,8 @@ class IBBroker(with_metaclass(MetaIBBroker, BrokerBase)):
         # Cancelled and Submitted with Filled = 0 can be pushed immediately
         try:
             order = self.orderbyid[msg.orderId]
-        except KeyError:
+        except KeyError as e:
+            logging.warning(e, exc_info=True)
             return  # not found, it was not an order
 
         if msg.status == self.SUBMITTED and msg.filled == 0:
@@ -554,7 +558,8 @@ class IBBroker(with_metaclass(MetaIBBroker, BrokerBase)):
         with self._lock_orders:
             try:
                 order = self.orderbyid[msg.id]
-            except (KeyError, AttributeError):
+            except (KeyError, AttributeError) as e:
+                logging.warning(e, exc_info=True)
                 return  # no order or no id in error
 
             if msg.errorCode == 202:
@@ -573,12 +578,11 @@ class IBBroker(with_metaclass(MetaIBBroker, BrokerBase)):
             self.notify(order)
 
     def push_orderstate(self, msg):
-        print('Push order state:')
-        print(msg)
         with self._lock_orders:
             try:
                 order = self.orderbyid[msg.orderId]
-            except (KeyError, AttributeError):
+            except (KeyError, AttributeError) as e:
+                logging.warning(e, exc_info=True)
                 return  # no order or no id in error
 
             if msg.orderState.status in ['PendingCancel', 'Cancelled',

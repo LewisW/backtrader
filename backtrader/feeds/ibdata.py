@@ -22,6 +22,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import datetime
+import logging
 
 import ibapi.common
 
@@ -248,7 +249,8 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
 
         try:
             tz = pytz.timezone(tzs)
-        except pytz.UnknownTimeZoneError:
+        except pytz.UnknownTimeZoneError as e:
+            logging.warning(e, exc_info=True)
             return None  # nothing can be done
 
         # contractdetails there, import ok, timezone found, return it

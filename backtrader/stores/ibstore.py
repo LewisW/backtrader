@@ -23,6 +23,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import bisect
 import collections
+import logging
 from copy import copy
 from datetime import date, datetime, timedelta
 import inspect
@@ -73,7 +74,8 @@ class RTVolume(object):
 
         # Put the tokens as attributes using the corresponding func
         for name, func in self._fields:
-            setattr(self, name, func(next(tokens)) if rtvol else func())
+            token = next(tokens)
+            setattr(self, name, func(token) if rtvol and token != '' else func())
 
         # If price was provided use it
         if price is not None:
@@ -465,8 +467,9 @@ class IBStore(with_metaclass(MetaSingleton, object)):
             # cdetails 203 security not allowed for acct
             try:
                 q = self.qs[msg.id]
-            except KeyError:
-                pass  # should not happend but it can
+            except KeyError as e:
+                logging.warning(e, exc_info=True)
+                pass  # should not happened but it can
             else:
                 self.cancelQueue(q, True)
 
@@ -475,8 +478,9 @@ class IBStore(with_metaclass(MetaSingleton, object)):
             # the calling data to let the data know ... it cannot resub
             try:
                 q = self.qs[msg.id]
-            except KeyError:
-                pass  # should not happend but it can
+            except KeyError as e:
+                logging.warning(e, exc_info=True)
+                pass  # should not happened but it can
             else:
                 q.put(-msg.errorCode)
                 self.cancelQueue(q)
@@ -486,8 +490,9 @@ class IBStore(with_metaclass(MetaSingleton, object)):
             # Please resubscribe real-time bars immediately.
             try:
                 q = self.qs[msg.id]
-            except KeyError:
-                pass  # should not happend but it can
+            except KeyError as e:
+                logging.warning(e, exc_info=True)
+                pass  # should not happened but it can
             else:
                 q.put(-msg.errorCode)
 
@@ -887,7 +892,8 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         if msg.tickType == 48:  # RTVolume
             try:
                 rtvol = RTVolume(msg.value)
-            except ValueError:  # price not in message ...
+            except ValueError as e:  # price not in message ...
+                logging.warning(e, exc_info=True)
                 pass
             else:
                 # Don't need to adjust the time, because it is in "timestamp"
@@ -915,13 +921,15 @@ class IBStore(with_metaclass(MetaSingleton, object)):
                         # seems to indicate the stream is halted for example in
                         # between 23:00 - 23:15 CET for FOREX
                         return
-                except AttributeError:
+                except AttributeError as e:
+                    logging.warning(e, exc_info=True)
                     pass
 
                 try:
                     rtvol = RTVolume(price=msg.price, tmoffset=self.tmoffset)
                     # print('rtvol with datetime:', rtvol.datetime)
-                except ValueError:  # price not in message ...
+                except ValueError as e:  # price not in message ...
+                    logging.warning(e, exc_info=True)
                     pass
                 else:
                     self.qs[tickerId].put(rtvol)
@@ -1151,7 +1159,8 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         key = (timeframe, compression)
         try:
             return self.revdur[key][-1]
-        except (KeyError, IndexError):
+        except (KeyError, IndexError) as e:
+            logging.warning(e, exc_info=True)
             pass
 
         return None
@@ -1401,7 +1410,8 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         with self._lock_accupd:
             try:
                 value = float(msg.val)
-            except ValueError:
+            except ValueError as e:
+                logging.warning(e, exc_info=True)
                 value = msg.val
 
             self.acc_upds[msg.accountName][msg.key][msg.currency] = value
