@@ -60,9 +60,9 @@ class RTVolume(object):
     '''
     _fields = [
         ('price', float),
-        ('size', int),
+        ('size', float),
         ('datetime', _ts2dt),
-        ('volume', int),
+        ('volume', float),
         ('vwap', float),
         ('single', bool)
     ]
@@ -738,12 +738,12 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         self.histtz[tickerId] = tz
 
         if contract.secType in ['CASH', 'CFD']:
-            self.iscash[tickerId] = 1  # msg.field code
+            self.iscash[tickerId] = 1  # msg.tickType code
             if not what:
                 what = 'BID'  # default for cash unless otherwise specified
 
         elif contract.secType in ['IND'] and self.p.indcash:
-            self.iscash[tickerId] = 4  # msg.field code
+            self.iscash[tickerId] = 4  # msg.tickType code
 
         what = what or 'TRADES'
 
@@ -909,7 +909,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         tickerId = msg.reqId
         fieldcode = self.iscash[tickerId]
         if fieldcode:
-            if msg.field == fieldcode:  # Expected cash field code
+            if msg.tickType == fieldcode:  # Expected cash field code
                 try:
                     if msg.price == -1.0:
                         # seems to indicate the stream is halted for example in
@@ -968,7 +968,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         else:
             msg.bar.date = datetime.utcfromtimestamp(long(dtstr))
 
-        q.put(msg.bar)
+        q.put(msg)
 
     @ibregister
     def historicalDataEnd(self, msg):

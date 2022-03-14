@@ -450,7 +450,7 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
                     if True:
                         return None
 
-                # Code invalidated until further checking is done
+                    # Code invalidated until further checking is done
                     if not self._statelivereconn:
                         return None  # indicate timeout situation
 
