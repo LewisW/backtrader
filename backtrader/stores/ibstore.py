@@ -1410,8 +1410,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         with self._lock_accupd:
             try:
                 value = float(msg.val)
-            except ValueError as e:
-                logging.warning(e, exc_info=True)
+            except ValueError:
                 value = msg.val
 
             self.acc_upds[msg.accountName][msg.key][msg.currency] = value
