@@ -892,7 +892,9 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         if msg.tickType == 48:  # RTVolume
             try:
                 rtvol = RTVolume(msg.value)
-            except ValueError as e:  # price not in message ...
+                if not rtvol.price: # price not in message ...
+                    pass
+            except ValueError as e:
                 logging.warning(e, exc_info=True)
                 pass
             else:
@@ -927,8 +929,9 @@ class IBStore(with_metaclass(MetaSingleton, object)):
 
                 try:
                     rtvol = RTVolume(price=msg.price, tmoffset=self.tmoffset)
-                    # print('rtvol with datetime:', rtvol.datetime)
-                except ValueError as e:  # price not in message ...
+                    if not rtvol.price: # price not in message ...
+                        pass
+                except ValueError as e:
                     logging.warning(e, exc_info=True)
                     pass
                 else:
