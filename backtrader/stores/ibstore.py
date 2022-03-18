@@ -893,7 +893,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
             try:
                 rtvol = RTVolume(msg.value)
                 if not rtvol.price: # price not in message ...
-                    pass
+                    return
             except ValueError as e:
                 logging.warning(e, exc_info=True)
                 pass
@@ -930,7 +930,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
                 try:
                     rtvol = RTVolume(price=msg.price, tmoffset=self.tmoffset)
                     if not rtvol.price: # price not in message ...
-                        pass
+                        return
                 except ValueError as e:
                     logging.warning(e, exc_info=True)
                     pass
