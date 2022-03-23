@@ -534,9 +534,9 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
                             self.put_notification(self.LIVE)
 
                     if self._usertvol:
-                        ret = self._load_rtvolume(msg)
+                        ret = self._load_rtvolume(msg.bar)
                     else:
-                        ret = self._load_rtbar(msg)
+                        ret = self._load_rtbar(msg.bar)
                     if ret:
                         return True
 
@@ -597,15 +597,8 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
                     self.put_notification(self.UNKNOWN, msg)
                     continue
 
-                if isinstance(msg, ibapi.common.BarData):
-                    if self._load_rtbar(msg, hist=True):
-                        return True  # loading worked
-
-                    # the date is from overlapping historical request
-                    continue
-
-                if isinstance(msg, ibapi.common.RealTimeBar):
-                    if self._load_rtbar(msg, hist=False):
+                if msg.bar is not None:
+                    if self._load_rtbar(msg.bar, hist=True):
                         return True  # loading worked
 
                     # the date is from overlapping historical request
