@@ -534,9 +534,9 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
                             self.put_notification(self.LIVE)
 
                     if self._usertvol:
-                        ret = self._load_rtvolume(msg.bar)
+                        ret = self._load_rtvolume(msg)
                     else:
-                        ret = self._load_rtbar(msg.bar)
+                        ret = self._load_rtbar(msg)
                     if ret:
                         return True
 
@@ -597,7 +597,7 @@ class IBData(with_metaclass(MetaIBData, DataBase)):
                     self.put_notification(self.UNKNOWN, msg)
                     continue
 
-                if msg.bar is not None:
+                if hasattr(msg, 'bar'):
                     if self._load_rtbar(msg.bar, hist=True):
                         return True  # loading worked
 
