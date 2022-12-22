@@ -791,7 +791,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         self.conn.reqHistoricalData(
             tickerId,
             contract,
-            bytes(enddate.strftime('%Y%m%d %H:%M:%S') + ' GMT'),
+            bytes(enddate.strftime('%Y%m%d %H:%M:%S') + ' UTC'),
             bytes(duration),
             bytes(barsize),
             bytes(what),
