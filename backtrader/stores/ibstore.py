@@ -465,18 +465,23 @@ class IBStore(with_metaclass(MetaSingleton, object)):
             # Usually received as an error in connection of just before disconn
             pass
         elif msg.errorCode in [162] and self.p.sleeppace > 0:
-            tickerId = msg.id
-
-            kargs = self.histcurreq.pop(tickerId, None)
-            if kargs is not None:
-                time.sleep(self.p.sleeppace)
-                self.reqHistoricalDataEx(**kargs)
+            try:
+                q = self.qs[msg.id]
+            except KeyError as e:
+                logging.warning(e, exc_info=True)
+                pass  # should not happened but it can
             else:
-                try:
-                    q = self.qs[msg.id]
-                except KeyError as e:
-                    logging.warning(e, exc_info=True)
-                    pass  # should not happened but it can
+                tickerId = self.ts[q]
+
+                self.histfmt.pop(tickerId, None)
+                self.histsend.pop(tickerId, None)
+                self.histtz.pop(tickerId, None)
+                self.histexreq.pop(tickerId, None)
+
+                kargs = self.histcurreq.pop(tickerId, None)
+                if kargs is not None:
+                    time.sleep(self.p.sleeppace)
+                    self.reqHistoricalDataEx(tickerId=tickerId, **kargs)
                 else:
                     self.cancelQueue(q, True)
         elif msg.errorCode in [200, 203, 162, 320, 321, 322]:
@@ -738,6 +743,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
 
         # Store the arguments for retrying
         self.histcurreq[tickerId] = kwargs
+        self.histcurreq[tickerId].pop('tickerId', None)
 
         # Get the best possible duration to reduce number of requests
         duration = None
