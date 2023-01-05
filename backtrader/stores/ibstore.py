@@ -186,6 +186,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         ('timeout', 3.0),  # timeout between reconnections
         ('timeoffset', True),  # Use offset to server for timestamps if needed
         ('timerefresh', 60.0),  # How often to refresh the timeoffset
+        ('sleeppace', 60),  # How long to sleep when getting a pacing violation (0 to disable)
         ('indcash', True),  # Treat IND codes as CASH elements
     )
 
@@ -227,6 +228,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         self.iscash = dict()  # tickerIds from cash products (for ex: EUR.JPY)
 
         self.histexreq = dict()  # holds segmented historical requests
+        self.histcurreq = dict()  # holds current historical request for retries
         self.histfmt = dict()  # holds datetimeformat for request
         self.histsend = dict()  # holds sessionend (data time) for request
         self.histtz = dict()  # holds sessionend (data time) for request
@@ -462,6 +464,21 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         if msg.errorCode is None:
             # Usually received as an error in connection of just before disconn
             pass
+        elif msg.errorCode in [162] and self.p.sleeppace > 0:
+            tickerId = msg.id
+
+            kargs = self.histcurreq.pop(tickerId, None)
+            if kargs is not None:
+                time.sleep(self.p.sleeppace)
+                self.reqHistoricalDataEx(**kargs)
+            else:
+                try:
+                    q = self.qs[msg.id]
+                except KeyError as e:
+                    logging.warning(e, exc_info=True)
+                    pass  # should not happened but it can
+                else:
+                    self.cancelQueue(q, True)
         elif msg.errorCode in [200, 203, 162, 320, 321, 322]:
             # cdetails 200 security not found, notify over right queue
             # cdetails 203 security not allowed for acct
@@ -718,6 +735,9 @@ class IBStore(with_metaclass(MetaSingleton, object)):
             tickerId, q = self.getTickerQueue()
         else:
             tickerId, q = self.reuseQueue(tickerId)  # reuse q for old tickerId
+
+        # Store the arguments for retrying
+        self.histcurreq[tickerId] = kwargs
 
         # Get the best possible duration to reduce number of requests
         duration = None
