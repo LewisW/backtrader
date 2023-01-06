@@ -464,7 +464,7 @@ class IBStore(with_metaclass(MetaSingleton, object)):
         if msg.errorCode is None:
             # Usually received as an error in connection of just before disconn
             pass
-        elif msg.errorCode in [162] and self.p.sleeppace > 0:
+        elif msg.errorCode in [162] and "pacing violation" in msg.errorMsg and self.p.sleeppace > 0:
             try:
                 q = self.qs[msg.id]
             except KeyError as e:
