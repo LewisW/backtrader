@@ -24,7 +24,10 @@ from __future__ import (absolute_import, division, print_function,
 # The modules below should/must define __all__ with the objects wishes
 # or prepend an "_" (underscore) to private classes/variables
 
-from .ibstore import IBStore
+try:
+    from .ibstore import IBStore
+except ImportError:
+    pass  # The user may not have a module installed
 
 try:
     from .vcstore import VCStore
@@ -36,5 +39,7 @@ try:
 except ImportError:
     pass  # The user may not have a module installed
 
-
-from .vchartfile import VChartFile
+try:
+    from .vchartfile import VChartFile
+except ImportError:
+    pass  # The user may not have a module installed
